@@ -22,15 +22,6 @@
 	ko.applyBindings(viewModel, rootNode);
 };
 
-//override the original applyBindings so that we can ensure all new rules and what not are correctly registered
-var origApplyBindings = ko.applyBindings;
-ko.applyBindings = function (viewModel, rootNode) {
-
-	ko.validation.init();
-
-	origApplyBindings(viewModel, rootNode);
-};
-
 ko.validatedObservable = function (initialValue) {
 	if (!ko.validation.utils.isObject(initialValue)) { return ko.observable(initialValue).extend({ validatable: true }); }
 
