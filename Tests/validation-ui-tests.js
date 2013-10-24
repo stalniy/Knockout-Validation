@@ -1,9 +1,9 @@
-﻿/*global 
-	module:false, 
-	equal:false, 
+﻿/*global
+	module:false,
+	equal:false,
 	notEqual:false,
 	strictEqual:false,
-	test:false, 
+	test:false,
 	ok:false,
 	asyncTest:false,
 	start: false,
@@ -33,7 +33,7 @@ var addTestHtml = function(html){
 };
 
 test('hasAttribute works in old IE', function () {
-    
+
     addTestHtml('<input id="myTestInput" type="text" required />');
 
     var el = document.getElementById('myTestInput');
@@ -53,10 +53,10 @@ test("checked binding sets error class on radio buttons", function() {
         vm = {
             result: ko.observable("").extend({ required: true })
         };
-    ko.validation.init({ decorateElement: true }, true);
+    ko.validation.init({ decorateInputElement: true }, true);
 
     vm.result.isModified(true); //fake a modification
-    
+
     applyTestBindings(vm);
 
     ok(!vm.result.isValid(), "Should initially be invalid");
@@ -84,10 +84,10 @@ test('Inserting Messages Works', function () {
 
     var $testInput = $('#myTestInput');
 
-    $testInput.val("a"); //set it 
+    $testInput.val("a"); //set it
     $testInput.change(); //trigger change event
 
-    $testInput.val(""); //set it 
+    $testInput.val(""); //set it
     $testInput.change(); //trigger change event
 
     var isValid = vm.firstName.isValid();
@@ -110,24 +110,24 @@ test('Decorating Elements Works', function () {
     var vm = {
         firstName: ko.observable('').extend({ required: true })
     };
-    
+
     // make sure the options are ok.
     ko.validation.init({
-        decorateElement: true
+        decorateInputElement: true
     }, true);
 
     applyTestBindings(vm);
 
     var $testInput = $('#myTestInput');
-    
+
     ok(!$testInput.hasClass('validationElement'), "CSS class shouldn't present");
 
-    $testInput.val("a"); //set it 
+    $testInput.val("a"); //set it
     $testInput.change(); //trigger change event
 
-    $testInput.val(""); //set it 
+    $testInput.val(""); //set it
     $testInput.change(); //trigger change event
-    
+
     ok($testInput.hasClass('validationElement'), "CSS class should present");
 });
 
@@ -138,22 +138,22 @@ test('Decorating Elements On Modified Works', function () {
     var vm = {
         firstName: ko.observable('').extend({ required: true })
     };
-    
+
     // make sure the options are ok.
     ko.validation.init({
-        decorateElement: true,
+        decorateInputElement: true,
         decorateElementOnModified: false
     }, true);
 
     applyTestBindings(vm);
 
     var $testInput = $('#myTestInput');
-    
+
     ok($testInput.hasClass('validationElement'), "CSS class should present");
 
-    $testInput.val("a"); //set it 
+    $testInput.val("a"); //set it
     $testInput.change(); //trigger change event
-    
+
     ok(!$testInput.hasClass('validationElement'), "CSS class shouldn't present");
 });
 
@@ -172,17 +172,17 @@ test('Showing Errors As Titles Works', function () {
     // make sure the options are ok.
     ko.validation.init({
         errorsAsTitleOnModified: true,
-        decorateElement: true
+        decorateInputElement: true
     }, true);
 
     applyTestBindings(vm);
 
     var $testInput = $('#myTestInput');
 
-    $testInput.val("a"); //set it 
+    $testInput.val("a"); //set it
     $testInput.change(); //trigger change event
 
-    $testInput.val(""); //set it 
+    $testInput.val(""); //set it
     $testInput.change(); //trigger change event
 
     var isValid = vm.firstName.isValid();
@@ -205,23 +205,23 @@ test('Original titles are restored', function () {
     // make sure the options are ok.
     ko.validation.init({
         errorsAsTitleOnModified: true,
-        decorateElement: true
+        decorateInputElement: true
     }, true);
 
     applyTestBindings(vm);
 
     var $testInput = $('#myTestInput');
 
-    $testInput.val("a"); //set it 
+    $testInput.val("a"); //set it
     $testInput.change(); //trigger change event
 
-    $testInput.val(""); //set it 
+    $testInput.val(""); //set it
     $testInput.change(); //trigger change event
 
     var msg = $testInput.attr('title');
     equal(msg, 'This field is required.', msg);
 
-    $testInput.val("a"); //set it 
+    $testInput.val("a"); //set it
     $testInput.change(); //trigger change event
 
     msg = $testInput.attr('title');
@@ -239,17 +239,17 @@ test("Original titles are restored to blank", function () {
 	// make sure the options are ok.
 	ko.validation.init({
 		errorsAsTitleOnModified: true,
-		decorateElement: true
+		decorateInputElement: true
 	}, true);
 
 	applyTestBindings(vm);
 
 	var $testInput = $('#myTestInput');
 
-	$testInput.val("a"); //set it 
+	$testInput.val("a"); //set it
 	$testInput.change(); //trigger change event
 
-	$testInput.val(""); //set it 
+	$testInput.val(""); //set it
 	$testInput.change(); //trigger change event
 
 	ok(!vm.firstName.isValid(), 'First Name is NOT Valid');
@@ -274,29 +274,29 @@ test('Original titles are restored with multiple validators, too', function () {
     // make sure the options are ok.
     ko.validation.init({
         errorsAsTitleOnModified: true,
-        decorateElement: true
+        decorateInputElement: true
     }, true);
 
     applyTestBindings(vm);
 
     var $testInput = $('#myTestInput');
 
-    $testInput.val("aa"); //set it 
+    $testInput.val("aa"); //set it
     $testInput.change(); //trigger change event
 
-    $testInput.val(""); //set it 
+    $testInput.val(""); //set it
     $testInput.change(); //trigger change event
 
     var msg = $testInput.attr('title');
     equal(msg, 'This field is required.', msg);
 
-    $testInput.val("a"); //set it 
+    $testInput.val("a"); //set it
     $testInput.change(); //trigger change event
 
     msg = $testInput.attr('title');
     equal(msg, 'Please enter at least 2 characters.', msg);
 
-    $testInput.val("aa"); //set it 
+    $testInput.val("aa"); //set it
     $testInput.change(); //trigger change event
 
     msg = $testInput.attr('title');
@@ -315,7 +315,7 @@ test('Showing Errors As Titles is disabled sucessfully', function () {
     // make sure the options are ok.
     ko.validation.init({
         errorsAsTitleOnModified: true,
-        decorateElement: true,
+        decorateInputElement: true,
 		errorsAsTitle: false
     }, true);
 
@@ -323,10 +323,10 @@ test('Showing Errors As Titles is disabled sucessfully', function () {
 
     var $testInput = $('#myTestInput');
 
-    $testInput.val("a"); //set it 
+    $testInput.val("a"); //set it
     $testInput.change(); //trigger change event
 
-    $testInput.val(""); //set it 
+    $testInput.val(""); //set it
     $testInput.change(); //trigger change event
 
     var isValid = vm.firstName.isValid();
@@ -356,10 +356,10 @@ test('Validation Options - Basic Tests', function () {
 
     var $testInput = $('#myTestInput');
 
-    $testInput.val("a"); //set it 
+    $testInput.val("a"); //set it
     $testInput.change(); //trigger change event
 
-    $testInput.val(""); //set it 
+    $testInput.val(""); //set it
     $testInput.change(); //trigger change event
 
     var isValid = vm.firstName.isValid();
@@ -394,7 +394,7 @@ test('Validation Options - Nested Test', function () {
 
     var $testInput = $('#myLastName');
 
-    $testInput.val("a"); //set it 
+    $testInput.val("a"); //set it
     $testInput.change(); //trigger change event
 
     var isValid = vm.someObj.lastName.isValid();
@@ -431,7 +431,7 @@ test('Validation Options - Options only apply to their HTML Contexts', function 
 
     var $testInput = $('#myLastName');
 
-    $testInput.val("a"); //set it 
+    $testInput.val("a"); //set it
     $testInput.change(); //trigger change event
 
     var isValid = vm.someObj.lastName.isValid();
@@ -443,7 +443,7 @@ test('Validation Options - Options only apply to their HTML Contexts', function 
     equal(noMsgs, 0, 'No Messages were inserted');
 
     var $firstName = $('#myFirstName');
-    $firstName.val(""); //set it 
+    $firstName.val(""); //set it
     $firstName.change(); //trigger change event
 
     ok(!vm.firstName.isValid(), 'Validation Still works correctly');
@@ -487,7 +487,7 @@ test("Issue #44 - Validation Element - Is Valid Test", function () {
     addTestHtml('<input type="text" id="testElement" data-bind="value: testObj, validationElement: testObj"/>');
 
     // make sure we allow element decorations
-    ko.validation.init({ decorateElement: true }, true);
+    ko.validation.init({ decorateInputElement: true }, true);
 
     applyTestBindings(vm);
 
@@ -510,7 +510,7 @@ test("Issue #44 - Validation Element - Is Invalid Test", function () {
     addTestHtml('<input type="text" id="testElement" data-bind="value: testObj, validationElement: testObj"/>');
 
     // make sure we allow element decorations
-    ko.validation.init({ decorateElement: true }, true);
+    ko.validation.init({ decorateInputElement: true }, true);
 
     applyTestBindings(vm);
 
@@ -535,7 +535,7 @@ test("Issue #80 - Write HTML5 Validation Attributes programmatically", function 
 
     // make sure we allow element decorations
     ko.validation.init({
-        decorateElement: true,
+        decorateInputElement: true,
         writeInputAttributes: true
     }, true);
 
@@ -572,7 +572,7 @@ test("Issue #80 - HTML5 attributes - pattern", function () {
 
     // make sure we allow element decorations
     ko.validation.init({
-        decorateElement: true,
+        decorateInputElement: true,
         writeInputAttributes: true
     }, true);
 
@@ -580,7 +580,7 @@ test("Issue #80 - HTML5 attributes - pattern", function () {
 
     var $el = $('#testElement');
     var el = $el.get(0);
-    
+
     var param = $el.attr('pattern');
 
     // fire the validity check event
@@ -632,11 +632,11 @@ test("HTML5 Input types", function () {
 			runAssertions();
         }
     }, 1);
-    
+
     function runAssertions()
     {
         clearInterval(intervalId);
-        
+
         var $emailInput = $('#emailInput');
         var emailInput = $emailInput.get(0);
         var $dateInput = $('#dateInput');
@@ -649,7 +649,7 @@ test("HTML5 Input types", function () {
         ok(!vm.invalidNumber.isValid(), 'Expected date to be considered as invalid.');
 
         start();
-    }    
+    }
 });
 
 

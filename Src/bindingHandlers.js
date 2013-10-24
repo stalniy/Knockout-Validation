@@ -60,7 +60,7 @@ ko.bindingHandlers['validationMessage'] = { // individual error message, if modi
 			throw new Error("Observable is not validatable");
 		}
 
-		isModified = obsv.isModified();
+		isModified = obsv.isModified.peek();
 		isValid = obsv.isValid();
 
 		var error = null;
@@ -93,7 +93,7 @@ ko.bindingHandlers['validationElement'] = {
 			throw new Error("Observable is not validatable");
 		}
 
-		isModified = obsv.isModified();
+		isModified = obsv.isModified.peek();
 		isValid = obsv.isValid();
 
 		// create an evaluator function that will return something like:
