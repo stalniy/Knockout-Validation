@@ -864,6 +864,14 @@ koBindingHandlers.validationOptions = {
 		return this() === null;
 	}
 
+	function failedRule(rule) {
+		if (arguments.length === 1) {
+			this.__failedRule = rule;
+			return this;
+		}
+		return this.__failedRule;
+	}
+
 	//This is the extender that makes a Knockout Observable also 'Validatable'
 	//examples include:
 	// 1. var test = ko.observable('something').extend({validatable: true});
@@ -890,6 +898,10 @@ koBindingHandlers.validationOptions = {
 			//
 			// Rule Context = { rule: '<rule name>', params: '<passed in params>', message: '<Override of default Message>' }
 			observable.rules = ko.observableArray(); //holds the rule Contexts to use as part of validation
+
+			// returns rule which made observable invalid
+			observable.failedRule = failedRule;
+			observable.failedRule(null);
 
 			//in case async validation is occuring
 			observable.isValidating = ko.observable(false);
@@ -936,7 +948,7 @@ koBindingHandlers.validationOptions = {
 		//Execute the validator and see if its valid
 		if (!rule.validator(observable(), params)) {
 			//not valid, so format the error message and stick it in the 'error' variable
-			observable.error(kv.formatMessage(ctx.message || rule.message, ctx.params));
+			observable.failedRule(ctx).error(kv.formatMessage(ctx.message || rule.message, ctx.params));
 			return false;
 		}
 		return true;
@@ -957,7 +969,7 @@ koBindingHandlers.validationOptions = {
 
 				if (!isValid) {
 					//not valid, so format the error message and stick it in the 'error' variable
-					observable.error(kv.formatMessage(message || ctx.message || rule.message, ctx.params));
+					observable.failedRule(ctx).error(kv.formatMessage(message || ctx.message || rule.message, ctx.params));
 				}
 			}
 
@@ -989,7 +1001,7 @@ koBindingHandlers.validationOptions = {
 			}
 		}
 		//finally if we got this far, make the observable valid again!
-		observable.error.clear();
+		observable.failedRule(null).error.clear();
 		return true;
 	};
 })();

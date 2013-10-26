@@ -1357,8 +1357,8 @@ test('Changing the value of observable used in onlyIf condition triggers validat
 //#endregion
 
 //#region validatedObservable
-module('validatedObservable Tests');
-asyncTest('validatedObservable is Valid', function () {
+module('Validation model Tests');
+asyncTest('validation model is Valid', function () {
     var group = ko.validation.model({
         testObj: ko.observable('').extend({ minLength: 5 }),
         testObj2: ko.observable('').extend({ required: true })
@@ -1373,7 +1373,7 @@ asyncTest('validatedObservable is Valid', function () {
     group.testObj2('eric');
 });
 
-asyncTest("validation group errors list is changed only once if few of observables became valid", function () {
+asyncTest("validation model's errors are changed only once if few of observables became valid", function () {
     expect(1);
 
     var group = ko.validation.model({
@@ -1390,7 +1390,7 @@ asyncTest("validation group errors list is changed only once if few of observabl
     group.anotherProp("test2");
 });
 
-test('validatedObservable is not Valid', function () {
+test('validation group is not Valid', function () {
     var group = ko.validation.model({
         testObj: ko.observable('').extend({ minLength: 5 }),
         testObj2: ko.observable('').extend({ required: true })
@@ -1403,7 +1403,7 @@ test('validatedObservable is not Valid', function () {
 
 });
 
-test('validatedObservable is first Valid then made InValid', function () {
+test('validation model is first Valid then made InValid', function () {
     var group = ko.validation.model({
         testObj: ko.observable('').extend({ minLength: 5 }),
         testObj2: ko.observable('').extend({ required: true })
@@ -1419,7 +1419,7 @@ test('validatedObservable is first Valid then made InValid', function () {
     ok(!group.isValid(), group.errors()[0]);
 });
 
-test('validatedObservable does not show error message when not modified', function () {
+test('validation model has no invalid observables which are modified if was not modified', function () {
     var group = ko.validation.model({
         testObj: ko.observable('a').extend({ minLength: 5 }),
         testObj2: ko.observable('').extend({ required: true })
@@ -1429,7 +1429,7 @@ test('validatedObservable does not show error message when not modified', functi
 });
 
 
-test('validatedObservable does not show error message when modified but correct', function () {
+test('validation model doesn\'t has invalid observables', function () {
     var group = ko.validation.model({
         testObj: ko.observable('a').extend({ minLength: 5 }),
         testObj2: ko.observable('').extend({ required: true })
@@ -1441,7 +1441,7 @@ test('validatedObservable does not show error message when modified but correct'
     ok(!group.isAnyInvalidModified(), 'validation error message is hidden');
 });
 
-test('validatedObservable show error message when at least one invalid and modified', function () {
+test('validation model has at least one invalid observable', function () {
     var group = ko.validation.model({
         testObj: ko.observable('a').extend({ minLength: 5 }),
         testObj2: ko.observable('').extend({ required: true })
@@ -1450,6 +1450,16 @@ test('validatedObservable show error message when at least one invalid and modif
     group.testObj.isModified(true);
 
     ok(group.isAnyInvalidModified(), 'validation error message is shown');
+});
+
+test("validatedObservable remember its failed validation rule", function () {
+    var observable = ko.observable().extend({ required: true });
+
+    strictEqual(observable.failedRule().rule, 'required');
+
+    observable("valid");
+
+    strictEqual(observable.failedRule(), null);
 });
 
 //#endregion
@@ -1535,6 +1545,7 @@ asyncTest('Async Rule Is NOT Valid Test', function () {
         equal(testObj(), 4, 'observable still works');
         ok(testObj.error(), testObj.error());
         equal(testObj.isValid(), false, 'testObj is not valid');
+        equal(testObj.failedRule().rule, 'mustEqualAsync');
     };
 
     testObj.extend({ mustEqualAsync: 5 });
