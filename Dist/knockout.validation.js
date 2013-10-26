@@ -207,6 +207,57 @@ kv.configuration = configuration;
 			}
 
 			return result;
+		},
+
+
+		// if html-5 validation attributes have been specified, this parses
+		// the attributes on @element
+		parseInputValidationAttributes: function (element, observable) {
+			forEach(kv.configuration.html5Attributes, function (attr) {
+				var value = element.getAttribute(attr);
+				if (value !== null) {
+					kv.addRule(observable, {
+						rule: attr,
+						params: typeof value === "undefined" || !String(value) ? true : value
+					});
+				}
+			});
+
+			var type = element.type;
+			kv.addRule(observable, {
+				rule: type === 'date' ? 'dateISO' : type,
+				params: true
+			});
+		},
+
+		// writes html5 validation attributes on the element passed in
+		writeInputValidationAttributes: function (element, observable) {
+			if (!utils.isValidatable(observable)) {
+				return false;
+			}
+
+			var rules = observable.rules();
+			var rulesMap = {};
+			forEach(rules, function (rule) {
+				rulesMap[rule.rule.toLowerCase()] = rule;
+			});
+
+			// loop through the attributes and add the information needed
+			forEach(kv.configuration.html5Attributes, function (attr) {
+				var rule = rulesMap[attr.toLowerCase()];
+
+				if (!rule) {
+					return true;
+				}
+
+				var params = rule.params;
+				// we have to do some special things for the pattern validation
+				if (rule.rule === "pattern" && params instanceof RegExp) {
+					params = params.source; // we need the pure string representation of the RegExpr without the //gi stuff
+				}
+
+				element.setAttribute(attr, params);
+			});
 		}
 	};
 
@@ -417,68 +468,6 @@ kv.configuration = configuration;
 			span.className = utils.getConfigOptions(element).errorMessageClass;
 			utils.insertAfter(element, span);
 			return span;
-		},
-
-		// if html-5 validation attributes have been specified, this parses
-		// the attributes on @element
-		parseInputValidationAttributes: function (element, valueAccessor) {
-			forEach(kv.configuration.html5Attributes, function (attr) {
-				var value = element.getAttribute(attr);
-				if (value !== null) {
-					kv.addRule(valueAccessor(), {
-						rule: attr,
-						params: value || true
-					});
-				}
-			});
-
-			var currentType = element.getAttribute('type');
-			forEach(kv.configuration.html5InputTypes, function (type) {
-				if (type === currentType) {
-					kv.addRule(valueAccessor(), {
-						rule: (type === 'date') ? 'dateISO' : type,
-						params: true
-					});
-				}
-			});
-		},
-
-		// writes html5 validation attributes on the element passed in
-		writeInputValidationAttributes: function (element, valueAccessor) {
-			var observable = valueAccessor();
-
-			if (!observable || !observable.rules) {
-				return;
-			}
-
-			var contexts = observable.rules(); // observable array
-
-			// loop through the attributes and add the information needed
-			forEach(kv.configuration.html5Attributes, function (attr) {
-				var params;
-				var ctx = koUtils.arrayFirst(contexts, function (ctx) {
-					return ctx.rule.toLowerCase() === attr.toLowerCase();
-				});
-
-				if (!ctx) {
-					return;
-				}
-
-				params = ctx.params;
-
-				// we have to do some special things for the pattern validation
-				if (ctx.rule === "pattern") {
-					if (ctx.params instanceof RegExp) {
-						params = ctx.params.source; // we need the pure string representation of the RegExpr without the //gi stuff
-					}
-				}
-
-				// we have a rule matching a validation attribute at this point
-				// so lets add it to the element along with the params
-				element.setAttribute(attr, params);
-			});
-
-			contexts = null;
 		},
 
 		//take an existing binding handler and make it cause automatic validations
@@ -700,7 +689,9 @@ koBindingHandlers.exposeValidationResult = (function () {
 
 			// parse html5 input validation attributes, optional feature
 			if (config.parseInputAttributes) {
-				kv.utils.async(function () { kv.parseInputValidationAttributes(element, valueAccessor); });
+				kv.utils.async(function () {
+					kv.utils.parseInputValidationAttributes(element, observable);
+				});
 			}
 
 			if (!kv.utils.isValidatable(observable)) {
@@ -718,7 +709,7 @@ koBindingHandlers.exposeValidationResult = (function () {
 
 			// write the html5 attributes if indicated by the config
 			if (config.writeInputAttributes) {
-				kv.writeInputValidationAttributes(element, valueAccessor);
+				kv.utils.writeInputValidationAttributes(element, observable);
 			}
 
 			// if requested, add binding to decorate element

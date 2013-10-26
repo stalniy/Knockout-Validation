@@ -206,68 +206,6 @@
 			return span;
 		},
 
-		// if html-5 validation attributes have been specified, this parses
-		// the attributes on @element
-		parseInputValidationAttributes: function (element, valueAccessor) {
-			ko.utils.arrayForEach(ko.validation.configuration.html5Attributes, function (attr) {
-				var value = element.getAttribute(attr);
-				if (value !== null) {
-					ko.validation.addRule(valueAccessor(), {
-						rule: attr,
-						params: value || true
-					});
-				}
-			});
-
-			var currentType = element.getAttribute('type');
-			ko.utils.arrayForEach(ko.validation.configuration.html5InputTypes, function (type) {
-				if (type === currentType) {
-					ko.validation.addRule(valueAccessor(), {
-						rule: (type === 'date') ? 'dateISO' : type,
-						params: true
-					});
-				}
-			});
-		},
-
-		// writes html5 validation attributes on the element passed in
-		writeInputValidationAttributes: function (element, valueAccessor) {
-			var observable = valueAccessor();
-
-			if (!observable || !observable.rules) {
-				return;
-			}
-
-			var contexts = observable.rules(); // observable array
-
-			// loop through the attributes and add the information needed
-			ko.utils.arrayForEach(ko.validation.configuration.html5Attributes, function (attr) {
-				var params;
-				var ctx = ko.utils.arrayFirst(contexts, function (ctx) {
-					return ctx.rule.toLowerCase() === attr.toLowerCase();
-				});
-
-				if (!ctx) {
-					return;
-				}
-
-				params = ctx.params;
-
-				// we have to do some special things for the pattern validation
-				if (ctx.rule === "pattern") {
-					if (ctx.params instanceof RegExp) {
-						params = ctx.params.source; // we need the pure string representation of the RegExpr without the //gi stuff
-					}
-				}
-
-				// we have a rule matching a validation attribute at this point
-				// so lets add it to the element along with the params
-				element.setAttribute(attr, params);
-			});
-
-			contexts = null;
-		},
-
 		//take an existing binding handler and make it cause automatic validations
 		makeBindingHandlerValidatable: function (handlerName) {
 			var init = ko.bindingHandlers[handlerName].init;

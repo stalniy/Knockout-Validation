@@ -135,6 +135,57 @@
 			}
 
 			return result;
+		},
+
+
+		// if html-5 validation attributes have been specified, this parses
+		// the attributes on @element
+		parseInputValidationAttributes: function (element, observable) {
+			ko.utils.arrayForEach(ko.validation.configuration.html5Attributes, function (attr) {
+				var value = element.getAttribute(attr);
+				if (value !== null) {
+					ko.validation.addRule(observable, {
+						rule: attr,
+						params: typeof value === "undefined" || !String(value) ? true : value
+					});
+				}
+			});
+
+			var type = element.type;
+			ko.validation.addRule(observable, {
+				rule: type === 'date' ? 'dateISO' : type,
+				params: true
+			});
+		},
+
+		// writes html5 validation attributes on the element passed in
+		writeInputValidationAttributes: function (element, observable) {
+			if (!utils.isValidatable(observable)) {
+				return false;
+			}
+
+			var rules = observable.rules();
+			var rulesMap = {};
+			ko.utils.arrayForEach(rules, function (rule) {
+				rulesMap[rule.rule.toLowerCase()] = rule;
+			});
+
+			// loop through the attributes and add the information needed
+			ko.utils.arrayForEach(ko.validation.configuration.html5Attributes, function (attr) {
+				var rule = rulesMap[attr.toLowerCase()];
+
+				if (!rule) {
+					return true;
+				}
+
+				var params = rule.params;
+				// we have to do some special things for the pattern validation
+				if (rule.rule === "pattern" && params instanceof RegExp) {
+					params = params.source; // we need the pure string representation of the RegExpr without the //gi stuff
+				}
+
+				element.setAttribute(attr, params);
+			});
 		}
 	};
 

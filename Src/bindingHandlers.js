@@ -9,7 +9,9 @@ ko.bindingHandlers.exposeValidationResult = (function () {
 
 			// parse html5 input validation attributes, optional feature
 			if (config.parseInputAttributes) {
-				ko.validation.utils.async(function () { ko.validation.parseInputValidationAttributes(element, valueAccessor); });
+				ko.validation.utils.async(function () {
+					ko.validation.utils.parseInputValidationAttributes(element, observable);
+				});
 			}
 
 			if (!ko.validation.utils.isValidatable(observable)) {
@@ -27,7 +29,7 @@ ko.bindingHandlers.exposeValidationResult = (function () {
 
 			// write the html5 attributes if indicated by the config
 			if (config.writeInputAttributes) {
-				ko.validation.writeInputValidationAttributes(element, valueAccessor);
+				ko.validation.utils.writeInputValidationAttributes(element, observable);
 			}
 
 			// if requested, add binding to decorate element
