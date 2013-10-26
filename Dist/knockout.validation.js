@@ -307,6 +307,7 @@ kv.configuration = configuration;
 					forEach(observables, function (observable) {
 						observable.isModified(isModified);
 					});
+					return this;
 				},
 
 				isAnyInvalidModified: function () {
@@ -753,7 +754,7 @@ koBindingHandlers.validationMessage = { // individual error message, if modified
 			shouldShowError = !isValid;
 		}
 
-		koUtils.setTextContent(element, error);
+		koBindingHandlers.text.update(element, function () { return error; });
 
 		var isCurrentlyErrorVisible = element.style.display !== "none";
 		if (isCurrentlyErrorVisible && !shouldShowError) {

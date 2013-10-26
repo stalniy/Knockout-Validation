@@ -63,7 +63,7 @@ ko.bindingHandlers.validationMessage = { // individual error message, if modifie
 			shouldShowError = !isValid;
 		}
 
-		ko.utils.setTextContent(element, error);
+		ko.bindingHandlers.text.update(element, function () { return error; });
 
 		var isCurrentlyErrorVisible = element.style.display !== "none";
 		if (isCurrentlyErrorVisible && !shouldShowError) {

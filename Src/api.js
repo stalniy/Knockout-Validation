@@ -94,6 +94,7 @@
 					ko.utils.arrayForEach(observables, function (observable) {
 						observable.isModified(isModified);
 					});
+					return this;
 				},
 
 				isAnyInvalidModified: function () {
