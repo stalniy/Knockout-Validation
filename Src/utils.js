@@ -144,9 +144,12 @@
 			ko.utils.arrayForEach(ko.validation.configuration.html5Attributes, function (attr) {
 				var value = element.getAttribute(attr);
 				if (value !== null) {
+					if (!isNaN(+value)) {
+						value = Number(value);
+					}
 					ko.validation.addRule(observable, {
 						rule: attr,
-						params: typeof value === "undefined" || !String(value) ? true : value
+						params: !value && value !== 0 ? true : value
 					});
 				}
 			});
