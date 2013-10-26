@@ -1,8 +1,7 @@
 ﻿// The core binding handler
 // this allows us to setup any value binding that internally always
 // performs the same functionality
-ko.bindingHandlers['validationCore'] = (function () {
-
+ko.bindingHandlers.exposeValidationResult = (function () {
 	return {
 		init: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
 			var config = ko.validation.utils.getConfigOptions(element);
@@ -13,29 +12,23 @@ ko.bindingHandlers['validationCore'] = (function () {
 				ko.validation.utils.async(function () { ko.validation.parseInputValidationAttributes(element, valueAccessor); });
 			}
 
-			// if requested insert message element and apply bindings
-			if (config.insertMessages && ko.validation.utils.isValidatable(observable)) {
+			if (!ko.validation.utils.isValidatable(observable)) {
+				return false;
+			}
 
-				// insert the <span></span>
-				var validationMessageElement = ko.validation.insertValidationMessage(element);
-
-				// if we're told to use a template, make sure that gets rendered
-				if (config.messageTemplate) {
-					ko.renderTemplate(config.messageTemplate, { field: observable }, null, validationMessageElement, 'replaceNode');
-				} else {
-					ko.applyBindingsToNode(validationMessageElement, { validationMessage: observable });
-				}
+			if (config.insertMessages) {
+				var messageNode = ko.validation.insertValidationMessage(element);
+				ko.applyBindingsToNode(messageNode, { validationMessage: observable });
 			}
 
 			// write the html5 attributes if indicated by the config
-			if (config.writeInputAttributes && ko.validation.utils.isValidatable(observable)) {
-
+			if (config.writeInputAttributes) {
 				ko.validation.writeInputValidationAttributes(element, valueAccessor);
 			}
 
 			// if requested, add binding to decorate element
-			if (config.decorateInputElement && ko.validation.utils.isValidatable(observable)) {
-				ko.applyBindingsToNode(element, { validationElement: observable });
+			if (config.decorateInputElement) {
+				ko.applyBindingsToNode(element, { validationStyle: observable });
 			}
 		}
 	};
@@ -47,86 +40,77 @@ ko.validation.makeBindingHandlerValidatable("value");
 ko.validation.makeBindingHandlerValidatable("checked");
 
 
-ko.bindingHandlers['validationMessage'] = { // individual error message, if modified or post binding
+ko.bindingHandlers.validationMessage = { // individual error message, if modified or post binding
 	update: function (element, valueAccessor) {
-		var obsv = valueAccessor(),
-			config = ko.validation.utils.getConfigOptions(element),
-			val = ko.utils.unwrapObservable(obsv),
-			msg = null,
-			isModified = false,
-			isValid = false;
+		var validatable = valueAccessor();
 
-		if (!obsv.isValid || !obsv.isModified) {
+		if (!ko.validation.utils.isValidatable(validatable)) {
 			throw new Error("Observable is not validatable");
 		}
 
-		isModified = obsv.isModified.peek();
-		isValid = obsv.isValid();
+		var
+			config     = ko.validation.utils.getConfigOptions(element),
+			isModified = validatable.isModified(),
+			isValid    = validatable.error.isEmpty();
 
-		var error = null;
+		var error = null, shouldShowError = false;
 		if (!config.messagesOnModified || isModified) {
-			error =  isValid ? null : obsv.error;
+			error = isValid ? null : validatable.error();
+			shouldShowError = !isValid;
 		}
+
 		ko.utils.setTextContent(element, error);
 
-		var isVisible = !config.messagesOnModified || isModified ? !isValid : false;
-		var isCurrentlyVisible = element.style.display !== "none";
-
-		if (isCurrentlyVisible && !isVisible) {
+		var isCurrentlyErrorVisible = element.style.display !== "none";
+		if (isCurrentlyErrorVisible && !shouldShowError) {
 			element.style.display = 'none';
-		} else if (!isCurrentlyVisible && isVisible) {
+		} else if (!isCurrentlyErrorVisible && shouldShowError) {
 			element.style.display = '';
 		}
 	}
 };
 
-ko.bindingHandlers['validationElement'] = {
+ko.bindingHandlers.validationStyle = {
 	update: function (element, valueAccessor) {
-		var obsv = valueAccessor(),
-			config = ko.validation.utils.getConfigOptions(element),
-			val = ko.utils.unwrapObservable(obsv),
-			msg = null,
-			isModified = false,
-			isValid = false;
+		var validatable = valueAccessor();
 
-		if (!obsv.isValid || !obsv.isModified) {
+		if (!ko.validation.utils.isValidatable(validatable)) {
 			throw new Error("Observable is not validatable");
 		}
 
-		isModified = obsv.isModified.peek();
-		isValid = obsv.isValid();
-
-		// create an evaluator function that will return something like:
-		// css: { validationElement: true }
-		var cssSettingsAccessor = function () {
-			var css = {};
-
-			var shouldShow = ((!config.decorateElementOnModified || isModified) ? !isValid : false);
-
-			// css: { validationElement: false }
-			css[config.errorElementClass] = shouldShow;
-
-			return css;
-		};
+		var
+			config     = ko.validation.utils.getConfigOptions(element),
+			isModified = validatable.isModified(),
+			isValid    = validatable.error.isEmpty();
 
 		//add or remove class on the element;
-		ko.bindingHandlers.css.update(element, cssSettingsAccessor);
-		if (!config.errorsAsTitle) { return; }
+		ko.bindingHandlers.css.update(element, function () {
+			var classes = {};
+			classes[config.errorElementClass] = !config.decorateElementOnModified || isModified ? !isValid : false;
 
-		var origTitle = ko.validation.utils.getAttribute(element, 'data-orig-title'),
-			elementTitle = element.title,
-			titleIsErrorMsg = ko.validation.utils.getAttribute(element, 'data-orig-title') === "true";
+			return classes;
+		});
 
-		var errorMsgTitleAccessor = function () {
+		if (config.errorsAsTitle) {
+			ko.bindingHandlers.validationStyle.setErrorAsTitleOn(element, validatable, config);
+		}
+	},
+
+	setErrorAsTitleOn: function (element, validatable, config) {
+		var
+			isValid = validatable.error.isEmpty(),
+			isModified = validatable.isModified();
+
+		ko.bindingHandlers.attr.update(element, function () {
 			if (!config.errorsAsTitleOnModified || isModified) {
+				var title = ko.validation.utils.getOriginalElementTitle(element);
 				if (!isValid) {
-					return { title: obsv.error, 'data-orig-title': ko.validation.utils.getOriginalElementTitle(element) };
+					return { title: validatable.error, 'data-orig-title': title };
 				} else {
-					return { title: ko.validation.utils.getOriginalElementTitle(element), 'data-orig-title': null };
+					return { title: title, 'data-orig-title': null };
 				}
 			}
-		};
-		ko.bindingHandlers.attr.update(element, errorMsgTitleAccessor);
+		});
 	}
 };
 
@@ -138,17 +122,16 @@ ko.bindingHandlers['validationElement'] = {
 //      <input type="text" data-bind="value: someValue"/>
 //      <input type="text" data-bind="value: someValue2"/>
 // </div>
-ko.bindingHandlers['validationOptions'] = (function () {
-	return {
-		init: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
-			var options = ko.utils.unwrapObservable(valueAccessor());
-			if (options) {
-				var newConfig = ko.utils.extend({}, ko.validation.configuration);
-				ko.utils.extend(newConfig, options);
+ko.bindingHandlers['validationOptions'] = {
+	init: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+		var options = ko.utils.unwrapObservable(valueAccessor());
+		if (options) {
+			var newConfig = ko.utils.extend({}, ko.validation.configuration);
+			ko.utils.extend(newConfig, options);
 
-				//store the validation options on the node so we can retrieve it later
-				ko.validation.utils.setDomData(element, newConfig);
-			}
+			//store the validation options on the node so we can retrieve it later
+			ko.validation.utils.setDomData(element, newConfig);
 		}
-	};
-}());
+	}
+};
+
