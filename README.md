@@ -2,10 +2,22 @@
 
 #### Modifications
 
-* removed `isModified` dependency inside validation bindings
-* shared the same instances of validation methods across different observables
-* optimized tranvesing over object graph
-* fixed memory leaks with annonymous rules
+* Rewrote `ko.validation.utils.getConfigOptions` method on non-recursive manner.
+* Added method `utils.observablesOf` which returns list of observables in object.
+* Renamed `validationElement` binding into `validationStyle`.
+* Renamed `validationCore` binding into `exposeValidationResult`.
+* Decreased binding's dependencies.
+* Renamed `showAllMessages` into `markAsModified`.
+* Renamed `isAnyMessageShown` into `isAnyInvalidModified`
+* Renamed `ko.validation.group` into `ko.validation.model` and optimized its creation.
+* Removed wrapping for `ko.applyBindings`: if someone wants to do so it can.
+* `ko.validatableObservable` now doesn't accept view models.
+* Fixed password confirmation issue in test-runner.
+* Fixed all tests. Removed unnecessary ones.
+* Optimized `validatable` extender: removed unnecessary methods and observables.
+* Removed `clearError/setError`. Added instead `observable.error.clear` and `error` methods.
+* Fixed memory leaks with annonymous rules.
+* Refactored code.
 
 A KnockoutJS Plugin for model and property validation
 
