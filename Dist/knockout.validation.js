@@ -218,7 +218,7 @@ kv.configuration = configuration;
 			forEach(config.html5Attributes, function (attr) {
 				var value = element.getAttribute(attr);
 				if (value !== null) {
-					if (!isNaN(+value)) {
+					if (value && !isNaN(+value)) {
 						value = Number(value);
 					}
 					kv.addRule(observable, {

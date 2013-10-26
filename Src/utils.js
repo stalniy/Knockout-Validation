@@ -146,7 +146,7 @@
 			ko.utils.arrayForEach(config.html5Attributes, function (attr) {
 				var value = element.getAttribute(attr);
 				if (value !== null) {
-					if (!isNaN(+value)) {
+					if (value && !isNaN(+value)) {
 						value = Number(value);
 					}
 					ko.validation.addRule(observable, {
