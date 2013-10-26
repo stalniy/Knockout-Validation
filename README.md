@@ -1,4 +1,12 @@
-#Knockout Validation
+#Knockout Validation Modified
+
+#### Modifications
+
+* removed `isModified` dependency inside validation bindings
+* shared the same instances of validation methods across different observables
+* optimized tranvesing over object graph
+* fixed memory leaks with annonymous rules
+
 A KnockoutJS Plugin for model and property validation
 
 [![Build Status](https://travis-ci.org/Knockout-Contrib/Knockout-Validation.png)](https://travis-ci.org/Knockout-Contrib/Knockout-Validation)
