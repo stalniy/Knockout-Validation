@@ -24,7 +24,7 @@
 * Removed `setAttribute/hasAttribute/getAttribute` from utils.
 * Rewrote `setDomData/getDomData` to use knockout domData object, so in this case data will be cleared when domNode is removed.
 * Removed localizations if someone wants to localize translations he has to rewrite `ko.validation.formatMessage` function
-* Implemented ability to store last failed rule
+* Implemented ability storing last failed rule
 * Refactored code.
 
 A KnockoutJS Plugin for model and property validation
