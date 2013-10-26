@@ -16,7 +16,13 @@
 * Fixed all tests. Removed unnecessary ones.
 * Optimized `validatable` extender: removed unnecessary methods and observables.
 * Removed `clearError/setError`. Added instead `observable.error.clear` and `error` methods.
+* Renamed `ko.validation.validateObservable` into `ko.validation.process`.
+* Renamed `configuration.decorateElement` into `configuration.decorateInputElement`. Removed dependency on this option in `validationElement` binding.
 * Fixed memory leaks with annonymous rules.
+* Now errors list for validation model is throttled, so now it's changed only once even if few observables in model became invalid.
+* Now observables which are not validatable can't be processed by validation bindings, error is thrown instead.
+* Removed `setAttribute/hasAttribute/getAttribute` from utils.
+* Rewrote `setDomData/getDomData` to use knockout domData object, so in this case data will be cleared when domNode is removed.
 * Refactored code.
 
 A KnockoutJS Plugin for model and property validation
