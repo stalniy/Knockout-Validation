@@ -23,7 +23,7 @@
 * Now observables which are not validatable can't be processed by validation bindings, error is thrown instead.
 * Removed `setAttribute/hasAttribute/getAttribute` from utils.
 * Rewrote `setDomData/getDomData` to use knockout domData object, so in this case data will be cleared when domNode is removed.
-* Removed localizations if someone wants to localize translations he have to rewrote `ko.validation.formatMessage` function
+* Removed localizations if someone wants to localize translations he has to rewrite `ko.validation.formatMessage` function
 * Refactored code.
 
 A KnockoutJS Plugin for model and property validation
