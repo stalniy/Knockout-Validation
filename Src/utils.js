@@ -141,7 +141,9 @@
 		// if html-5 validation attributes have been specified, this parses
 		// the attributes on @element
 		parseInputValidationAttributes: function (element, observable) {
-			ko.utils.arrayForEach(ko.validation.configuration.html5Attributes, function (attr) {
+			var config = ko.validation.configuration;
+
+			ko.utils.arrayForEach(config.html5Attributes, function (attr) {
 				var value = element.getAttribute(attr);
 				if (value !== null) {
 					if (!isNaN(+value)) {
@@ -155,10 +157,12 @@
 			});
 
 			var type = element.type;
-			ko.validation.addRule(observable, {
-				rule: type === 'date' ? 'dateISO' : type,
-				params: true
-			});
+			if (ko.utils.arrayIndexOf(config.html5InputTypes, type) !== -1) {
+				ko.validation.addRule(observable, {
+					rule: type === 'date' ? 'dateISO' : type,
+					params: true
+				});
+			}
 		},
 
 		// writes html5 validation attributes on the element passed in
