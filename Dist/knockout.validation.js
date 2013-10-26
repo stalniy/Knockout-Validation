@@ -73,7 +73,7 @@ kv.configuration = configuration;
 ;kv.utils = (function () {
 	var seedId = new Date().getTime();
 
-	var domData = {}; //hash of data objects that we reference from dom elements
+	var domData = koUtils.domData;
 	var domDataKey = '__ko_validation__';
 
 	var utils = {
@@ -85,15 +85,6 @@ kv.configuration = configuration;
 		},
 		getValue: function (o) {
 			return (typeof o === 'function' ? o() : o);
-		},
-		hasAttribute: function (node, attr) {
-			return node.getAttribute(attr) !== null;
-		},
-		getAttribute: function (element, attr) {
-			return element.getAttribute(attr);
-		},
-		setAttribute: function (element, attr, value) {
-			return element.setAttribute(attr, value);
 		},
 		isValidatable: function (o) {
 			return o && o.rules && o.isValid && o.isModified;
@@ -114,22 +105,10 @@ kv.configuration = configuration;
 			return options || kv.configuration;
 		},
 		setDomData: function (node, data) {
-			var key = node[domDataKey];
-
-			if (!key) {
-				node[domDataKey] = key = utils.newId();
-			}
-
-			domData[key] = data;
+			domData.set(node, domDataKey, data);
 		},
 		getDomData: function (node) {
-			var key = node[domDataKey];
-
-			if (!key) {
-				return undefined;
-			}
-
-			return domData[key];
+			return domData.get(node, domDataKey);
 		},
 		contextFor: function (node, checkOnlyNode) {
 			switch (node.nodeType) {
@@ -154,12 +133,10 @@ kv.configuration = configuration;
 			}
 		},
 		getOriginalElementTitle: function (element) {
-			var savedOriginalTitle = utils.getAttribute(element, 'data-orig-title'),
-				currentTitle = element.title,
-				hasSavedOriginalTitle = utils.hasAttribute(element, 'data-orig-title');
+			var savedOriginalTitle = element.getAttribute('data-orig-title'),
+				hasSavedOriginalTitle = savedOriginalTitle !== null;
 
-			return hasSavedOriginalTitle ?
-				savedOriginalTitle : currentTitle;
+			return hasSavedOriginalTitle ? savedOriginalTitle : element.title;
 		},
 		async: function (expr) {
 			if (window.setImmediate) { window.setImmediate(expr); }
@@ -445,10 +422,11 @@ kv.configuration = configuration;
 		// the attributes on @element
 		parseInputValidationAttributes: function (element, valueAccessor) {
 			forEach(kv.configuration.html5Attributes, function (attr) {
-				if (utils.hasAttribute(element, attr)) {
+				var value = element.getAttribute(attr);
+				if (value !== null) {
 					kv.addRule(valueAccessor(), {
 						rule: attr,
-						params: element.getAttribute(attr) || true
+						params: value || true
 					});
 				}
 			});

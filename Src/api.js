@@ -209,10 +209,11 @@
 		// the attributes on @element
 		parseInputValidationAttributes: function (element, valueAccessor) {
 			ko.utils.arrayForEach(ko.validation.configuration.html5Attributes, function (attr) {
-				if (utils.hasAttribute(element, attr)) {
+				var value = element.getAttribute(attr);
+				if (value !== null) {
 					ko.validation.addRule(valueAccessor(), {
 						rule: attr,
-						params: element.getAttribute(attr) || true
+						params: value || true
 					});
 				}
 			});

@@ -40,8 +40,8 @@ test('hasAttribute works in old IE', function () {
 
     ok(el, 'found element');
 
-    ok(ko.validation.utils.hasAttribute(el, 'required'), 'element correctly has html5 input attribute');
-    ok(!ko.validation.utils.hasAttribute(el, 'pattern'), 'element correctly does not have html5 input attribute');
+    ok(el.getAttribute('required') !== null, 'element correctly has html5 input attribute');
+    ok(el.getAttribute('pattern') === null, 'element correctly does not have html5 input attribute');
 });
 
 test("checked binding sets error class on radio buttons", function() {
