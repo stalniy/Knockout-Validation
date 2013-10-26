@@ -318,7 +318,7 @@ kv.configuration = configuration;
 		},
 
 		formatMessage: function (message, params) {
-			if (typeof (message) === 'function') {
+			if (typeof message === 'function') {
 				return message(params);
 			}
 			return message.replace(/\{0\}/gi, unwrap(params));
@@ -989,19 +989,7 @@ koBindingHandlers.validationOptions = {
 		return true;
 	};
 })();
-;
-//quick function to override rule messages
-kv.localize = function (msgTranslations) {
-
-	var msg, rule;
-
-	//loop the properties in the object and assign the msg to the rule
-	for (rule in msgTranslations) {
-		if (kv.rules.hasOwnProperty(rule)) {
-			kv.rules[rule].message = msgTranslations[rule];
-		}
-	}
-};;ko.applyBindingsWithValidation = function (viewModel, rootNode, options) {
+;ko.applyBindingsWithValidation = function (viewModel, rootNode, options) {
 	var len = arguments.length,
 		node, config;
 

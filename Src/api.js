@@ -105,7 +105,7 @@
 		},
 
 		formatMessage: function (message, params) {
-			if (typeof (message) === 'function') {
+			if (typeof message === 'function') {
 				return message(params);
 			}
 			return message.replace(/\{0\}/gi, ko.utils.unwrapObservable(params));
