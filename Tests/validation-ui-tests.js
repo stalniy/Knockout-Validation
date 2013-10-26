@@ -338,6 +338,29 @@ test('Showing Errors As Titles is disabled sucessfully', function () {
     notEqual(msg, 'This field is required.', msg);
 });
 
+test("Removing error message from title when isModified is reset", function () {
+
+    addTestHtml('<input id="myTestInput" data-bind="value: prop" type="text" />');
+
+    var vm = {
+        prop: ko.observable('').extend({ required: true })
+    };
+
+    // make sure the options are ok.
+    ko.validation.init({
+        errorsAsTitleOnModified: true,
+        decorateInputElement: true,
+        errorsAsTitle: false
+    }, true);
+
+    applyTestBindings(vm);
+
+    vm.prop("valid").prop("");
+    vm.prop.isModified(false);
+
+    ok(!$("#myTestInput").attr("title"));
+});
+
 //#endregion
 
 //#region Validation Option Tests
