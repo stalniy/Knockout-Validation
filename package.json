@@ -1,8 +1,8 @@
 {
   "name": "knockout.validation",
-  "version": "2.0.0-Pre",
+  "version": "2.0.0",
   "description": "A KnockoutJS Plugin for model and property validation",
-  "main": "gruntfile.js",
+  "main": "Gruntfile.js",
   "dependencies": {
     "grunt": "~0.4.1",
     "grunt-cli": "~0.1.9"
@@ -22,11 +22,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Knockout-Contrib/Knockout-Validation.git"
+    "url": "https://github.com/stalniy/Knockout-Validation.git"
   },
-  "author": "@ericmbarnard",
+  "author": "@stalniy",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Knockout-Contrib/Knockout-Validation/issues"
+    "url": "https://github.com/stalniy/Knockout-Validation/issues"
   }
 }
