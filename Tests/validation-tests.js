@@ -1462,6 +1462,32 @@ test("validatedObservable remember its failed validation rule", function () {
     strictEqual(observable.failedRule(), null);
 });
 
+test("validation model can detect when it's modified", function () {
+    var model = ko.validation.model({
+        prop: ko.observable(),
+        anotherProp: ko.observable()
+    });
+
+    model.prop(1);
+
+    ok(model.isModified(), "validation model is modified");
+});
+
+test("validation model can detect when it's invalid even if 'observable' option is false", function () {
+    var model = ko.validation.model({
+        prop: ko.observable().extend({ required: true }),
+        anotherProp: ko.observable().extend({ required: true })
+    }, {
+        observable: false
+    });
+
+    ok(!model.isValid(), 'invalid by default');
+
+    model.prop("valid").anotherProp("also valid");
+
+    ok(model.isValid(), "valid now");
+});
+
 //#endregion
 
 //#region Removing Validation
