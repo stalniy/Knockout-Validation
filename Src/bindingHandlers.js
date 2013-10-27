@@ -65,12 +65,17 @@ ko.bindingHandlers.validationMessage = { // individual error message, if modifie
 			shouldShowError = !isValid;
 		}
 
-		ko.bindingHandlers.text.update(element, function () { return error; });
+		if (shouldShowError) {
+			ko.bindingHandlers.text.update(element, function () { return error; });
+		}
+		ko.bindingHandlers.validationMessage.toggleErrorVisibility(element, shouldShowError);
+	},
 
+	toggleErrorVisibility: function (element, shouldShow) {
 		var isCurrentlyErrorVisible = element.style.display !== "none";
-		if (isCurrentlyErrorVisible && !shouldShowError) {
+		if (isCurrentlyErrorVisible && !shouldShow) {
 			element.style.display = 'none';
-		} else if (!isCurrentlyErrorVisible && shouldShowError) {
+		} else if (!isCurrentlyErrorVisible && shouldShow) {
 			element.style.display = '';
 		}
 	}

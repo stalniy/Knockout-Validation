@@ -754,12 +754,17 @@ koBindingHandlers.validationMessage = { // individual error message, if modified
 			shouldShowError = !isValid;
 		}
 
-		koBindingHandlers.text.update(element, function () { return error; });
+		if (shouldShowError) {
+			koBindingHandlers.text.update(element, function () { return error; });
+		}
+		koBindingHandlers.validationMessage.toggleErrorVisibility(element, shouldShowError);
+	},
 
+	toggleErrorVisibility: function (element, shouldShow) {
 		var isCurrentlyErrorVisible = element.style.display !== "none";
-		if (isCurrentlyErrorVisible && !shouldShowError) {
+		if (isCurrentlyErrorVisible && !shouldShow) {
 			element.style.display = 'none';
-		} else if (!isCurrentlyErrorVisible && shouldShowError) {
+		} else if (!isCurrentlyErrorVisible && shouldShow) {
 			element.style.display = '';
 		}
 	}
