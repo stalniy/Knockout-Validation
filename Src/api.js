@@ -5,24 +5,6 @@
 		utils = ko.validation.utils;
 
 
-	function collectErrors(array) {
-		var errors = [];
-		ko.utils.arrayForEach(array, function (observable) {
-			if (!observable.isValid()) {
-				errors.push(observable.error);
-			}
-		});
-		return errors;
-	}
-
-	function ensureIsValidatable(observable, result) {
-		if (!utils.isValidatable(observable)) {
-			observable.extend({ validatable: true });
-		}
-		result.push(observable);
-	}
-
-
 	return {
 		//Call this on startup
 		//any config can be overridden with the passed in options
@@ -55,55 +37,6 @@
 
 		// resets the config back to its original state
 		reset: ko.validation.configuration.reset,
-
-		// recursivly walks a viewModel and creates an object that
-		// provides validation information for the entire viewModel
-		// obj -> the viewModel to walk
-		// options -> {
-		//      deep: false, // if true, will walk past the first level of viewModel properties
-		//      observable: false // if true, returns a computed observable indicating if the viewModel is valid
-		// }
-		model: function (model, options) { // array of observables or viewModel
-			options = ko.utils.extend(ko.utils.extend({}, configuration.grouping), options);
-
-			var collectedErrors;
-			var isValid;
-			var observables = utils.observablesOf(model, ensureIsValidatable, options);
-			var errors = function () {
-				return collectErrors(observables);
-			};
-
-			if (options.observable) {
-				collectedErrors = ko.computed(errors);
-				collectedErrors.throttleEvaluation = 10;
-				isValid = ko.observable(collectedErrors().length === 0);
-				collectedErrors.subscribe(function (list) { isValid(list.length === 0); });
-			} else {
-				collectedErrors = errors;
-				isValid = function () { return collectedErrors().length === 0; };
-			}
-
-			errors = null;
-			return ko.utils.extend({
-				isValid: isValid,
-
-				errors: collectedErrors,
-
-				markAsModified: function (state) {
-					var isModified = arguments.length === 0 || state;
-					ko.utils.arrayForEach(observables, function (observable) {
-						observable.isModified(isModified);
-					});
-					return this;
-				},
-
-				isAnyInvalidModified: function () {
-					return !!ko.utils.arrayFirst(observables, function (observable) {
-						return !observable.isValid() && observable.isModified();
-					});
-				}
-			}, model);
-		},
 
 		formatMessage: function (message, params) {
 			if (typeof message === 'function') {
