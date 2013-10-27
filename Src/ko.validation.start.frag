@@ -13,7 +13,7 @@
         // <script> tag: use the global `ko` object, attaching a `mapping` property
         factory(ko, ko.validation = {});
     }
-}(function ( ko, exports ) {
+}(function ( ko, exports, undefined ) {
 
     if (typeof ko === "undefined") {
         throw 'Knockout is required, please ensure it is loaded before loading this validation plug-in';
