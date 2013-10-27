@@ -38,11 +38,12 @@
 		// resets the config back to its original state
 		reset: ko.validation.configuration.reset,
 
-		formatMessage: function (message, params) {
+		formatMessage: function (message, options) {
+			var value = typeof options.params !== "undefined" ? options.params : options;
 			if (typeof message === 'function') {
-				return message(params);
+				return message(value);
 			}
-			return message.replace(/\{0\}/gi, ko.utils.unwrapObservable(params));
+			return message.replace(/\{0\}/gi, ko.utils.unwrapObservable(value));
 		},
 
 		// addRule:

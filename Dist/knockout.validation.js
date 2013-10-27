@@ -311,11 +311,12 @@ kv.configuration = configuration;
 		// resets the config back to its original state
 		reset: kv.configuration.reset,
 
-		formatMessage: function (message, params) {
+		formatMessage: function (message, options) {
+			var value = typeof options.params !== "undefined" ? options.params : options;
 			if (typeof message === 'function') {
-				return message(params);
+				return message(value);
 			}
-			return message.replace(/\{0\}/gi, unwrap(params));
+			return message.replace(/\{0\}/gi, unwrap(value));
 		},
 
 		// addRule:
@@ -985,7 +986,7 @@ koBindingHandlers.validationOptions = {
 		//Execute the validator and see if its valid
 		if (!rule.validator(observable(), params)) {
 			//not valid, so format the error message and stick it in the 'error' variable
-			observable.failedRule(ctx).error(kv.formatMessage(ctx.message || rule.message, ctx.params));
+			observable.failedRule(ctx).error(kv.formatMessage(ctx.message || rule.message, ctx));
 			return false;
 		}
 		return true;
@@ -1006,7 +1007,7 @@ koBindingHandlers.validationOptions = {
 
 				if (!isValid) {
 					//not valid, so format the error message and stick it in the 'error' variable
-					observable.failedRule(ctx).error(kv.formatMessage(message || ctx.message || rule.message, ctx.params));
+					observable.failedRule(ctx).error(kv.formatMessage(message || ctx.message || rule.message, ctx));
 				}
 			}
 

@@ -117,7 +117,7 @@
 		//Execute the validator and see if its valid
 		if (!rule.validator(observable(), params)) {
 			//not valid, so format the error message and stick it in the 'error' variable
-			observable.failedRule(ctx).error(ko.validation.formatMessage(ctx.message || rule.message, ctx.params));
+			observable.failedRule(ctx).error(ko.validation.formatMessage(ctx.message || rule.message, ctx));
 			return false;
 		}
 		return true;
@@ -138,7 +138,7 @@
 
 				if (!isValid) {
 					//not valid, so format the error message and stick it in the 'error' variable
-					observable.failedRule(ctx).error(ko.validation.formatMessage(message || ctx.message || rule.message, ctx.params));
+					observable.failedRule(ctx).error(ko.validation.formatMessage(message || ctx.message || rule.message, ctx));
 				}
 			}
 
