@@ -41,6 +41,14 @@
 		return this.__failedRule;
 	}
 
+	function returnValidationState() {
+		return {
+			isModified : this.isModified(),
+			isValid    : this.isValid(),
+			error      : this.error()
+		};
+	}
+
 	//This is the extender that makes a Knockout Observable also 'Validatable'
 	//examples include:
 	// 1. var test = ko.observable('something').extend({validatable: true});
@@ -93,12 +101,20 @@
 			});
 
 			var config = ko.validation.configuration.validate;
-			validationTrigger.throttleEvaluation = options.throttle || config && config.throttle;
+			var throttleTimeout = options.throttle || config && config.throttle;
+
+			observable.validationState = ko.computed({
+				read: returnValidationState,
+				deferEvaluation: true
+			}, observable);
+			observable.validationState.throttleEvaluation = throttleTimeout ? throttleTimeout + 1 : null;
+			validationTrigger.throttleEvaluation = throttleTimeout;
 
 			observable._disposeValidation = function () {
 				this.rules.removeAll();
 				isModifiedSubscription.dispose();
 				validationTrigger.dispose();
+				this.validationState.dispose();
 
 				delete this['rules'];
 				delete this['error'];

@@ -1624,4 +1624,20 @@ asyncTest("can be throttled using using local configuration", function () {
     observable("1");
 });
 
+asyncTest("evaluates validation state once if throttle option is specified", function () {
+    expect(1);
+
+    var observable = ko.observable().extend({ validatable: {
+        throttle: 10
+    } });
+
+    observable.validationState.subscribe(function () {
+        start();
+        ok(true, "evaluates only once");
+    });
+
+    observable.isModified(true);
+    observable.error("custom error");
+});
+
 //#endregion

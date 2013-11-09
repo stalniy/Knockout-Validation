@@ -48,21 +48,20 @@ ko.validation.makeBindingHandlerValidatable("checked");
 
 ko.bindingHandlers.validationMessage = { // individual error message, if modified or post binding
 	update: function (element, valueAccessor) {
-		var validatable = valueAccessor();
+		var observable = valueAccessor();
 
-		if (!ko.validation.utils.isValidatable(validatable)) {
+		if (!ko.validation.utils.isValidatable(observable)) {
 			throw new Error("Observable is not validatable");
 		}
 
 		var
-			config     = ko.validation.utils.getConfigOptions(element),
-			isModified = validatable.isModified(),
-			isValid    = validatable.error.isEmpty();
+			config = ko.validation.utils.getConfigOptions(element),
+			state  = observable.validationState();
 
 		var error = null, shouldShowError = false;
-		if (!config.messagesOnModified || isModified) {
-			error = isValid ? null : validatable.error();
-			shouldShowError = !isValid;
+		if (!config.messagesOnModified || state.isModified) {
+			error = state.isValid ? null : state.error;
+			shouldShowError = !state.isValid;
 		}
 
 		if (shouldShowError) {
@@ -83,42 +82,39 @@ ko.bindingHandlers.validationMessage = { // individual error message, if modifie
 
 ko.bindingHandlers.validationStyle = {
 	update: function (element, valueAccessor) {
-		var validatable = valueAccessor();
+		var observable = valueAccessor();
 
-		if (!ko.validation.utils.isValidatable(validatable)) {
+		if (!ko.validation.utils.isValidatable(observable)) {
 			throw new Error("Observable is not validatable");
 		}
 
 		var
-			config     = ko.validation.utils.getConfigOptions(element),
-			isModified = validatable.isModified(),
-			isValid    = validatable.error.isEmpty();
+			config = ko.validation.utils.getConfigOptions(element),
+			state  = observable.validationState();
 
 		//add or remove class on the element;
 		ko.bindingHandlers.css.update(element, function () {
 			var classes = {};
-			classes[config.errorElementClass] = !config.decorateElementOnModified || isModified ? !isValid : false;
+			classes[config.errorElementClass] = !config.decorateElementOnModified || state.isModified ? !state.isValid : false;
 
 			return classes;
 		});
 
 		if (config.errorsAsTitle) {
-			ko.bindingHandlers.validationStyle.setErrorAsTitleOn(element, validatable, config);
+			ko.bindingHandlers.validationStyle.setErrorAsTitleOn(element, observable, config);
 		}
 	},
 
-	setErrorAsTitleOn: function (element, validatable, config) {
-		var
-			isValid = validatable.error.isEmpty(),
-			isModified = validatable.isModified();
+	setErrorAsTitleOn: function (element, observable, config) {
+		var state = observable.validationState();
 
 		ko.bindingHandlers.attr.update(element, function () {
 			var title = ko.validation.utils.getOriginalElementTitle(element);
-			var hasModification = !config.errorsAsTitleOnModified || isModified;
+			var hasModification = !config.errorsAsTitleOnModified || state.isModified;
 
-			if (hasModification && !isValid) {
-				return { title: validatable.error, 'data-orig-title': title };
-			} else if (!hasModification || isValid) {
+			if (hasModification && !state.isValid) {
+				return { title: state.error, 'data-orig-title': title };
+			} else if (!hasModification || state.isValid) {
 				return { title: title, 'data-orig-title': null };
 			}
 		});

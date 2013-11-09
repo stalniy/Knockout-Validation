@@ -769,21 +769,20 @@ kv.makeBindingHandlerValidatable("checked");
 
 koBindingHandlers.validationMessage = { // individual error message, if modified or post binding
 	update: function (element, valueAccessor) {
-		var validatable = valueAccessor();
+		var observable = valueAccessor();
 
-		if (!kv.utils.isValidatable(validatable)) {
+		if (!kv.utils.isValidatable(observable)) {
 			throw new Error("Observable is not validatable");
 		}
 
 		var
-			config     = kv.utils.getConfigOptions(element),
-			isModified = validatable.isModified(),
-			isValid    = validatable.error.isEmpty();
+			config = kv.utils.getConfigOptions(element),
+			state  = observable.validationState();
 
 		var error = null, shouldShowError = false;
-		if (!config.messagesOnModified || isModified) {
-			error = isValid ? null : validatable.error();
-			shouldShowError = !isValid;
+		if (!config.messagesOnModified || state.isModified) {
+			error = state.isValid ? null : state.error;
+			shouldShowError = !state.isValid;
 		}
 
 		if (shouldShowError) {
@@ -804,42 +803,39 @@ koBindingHandlers.validationMessage = { // individual error message, if modified
 
 koBindingHandlers.validationStyle = {
 	update: function (element, valueAccessor) {
-		var validatable = valueAccessor();
+		var observable = valueAccessor();
 
-		if (!kv.utils.isValidatable(validatable)) {
+		if (!kv.utils.isValidatable(observable)) {
 			throw new Error("Observable is not validatable");
 		}
 
 		var
-			config     = kv.utils.getConfigOptions(element),
-			isModified = validatable.isModified(),
-			isValid    = validatable.error.isEmpty();
+			config = kv.utils.getConfigOptions(element),
+			state  = observable.validationState();
 
 		//add or remove class on the element;
 		koBindingHandlers.css.update(element, function () {
 			var classes = {};
-			classes[config.errorElementClass] = !config.decorateElementOnModified || isModified ? !isValid : false;
+			classes[config.errorElementClass] = !config.decorateElementOnModified || state.isModified ? !state.isValid : false;
 
 			return classes;
 		});
 
 		if (config.errorsAsTitle) {
-			koBindingHandlers.validationStyle.setErrorAsTitleOn(element, validatable, config);
+			koBindingHandlers.validationStyle.setErrorAsTitleOn(element, observable, config);
 		}
 	},
 
-	setErrorAsTitleOn: function (element, validatable, config) {
-		var
-			isValid = validatable.error.isEmpty(),
-			isModified = validatable.isModified();
+	setErrorAsTitleOn: function (element, observable, config) {
+		var state = observable.validationState();
 
 		koBindingHandlers.attr.update(element, function () {
 			var title = kv.utils.getOriginalElementTitle(element);
-			var hasModification = !config.errorsAsTitleOnModified || isModified;
+			var hasModification = !config.errorsAsTitleOnModified || state.isModified;
 
-			if (hasModification && !isValid) {
-				return { title: validatable.error, 'data-orig-title': title };
-			} else if (!hasModification || isValid) {
+			if (hasModification && !state.isValid) {
+				return { title: state.error, 'data-orig-title': title };
+			} else if (!hasModification || state.isValid) {
 				return { title: title, 'data-orig-title': null };
 			}
 		});
@@ -910,6 +906,14 @@ koBindingHandlers.validationOptions = {
 		return this.__failedRule;
 	}
 
+	function returnValidationState() {
+		return {
+			isModified : this.isModified(),
+			isValid    : this.isValid(),
+			error      : this.error()
+		};
+	}
+
 	//This is the extender that makes a Knockout Observable also 'Validatable'
 	//examples include:
 	// 1. var test = ko.observable('something').extend({validatable: true});
@@ -962,12 +966,20 @@ koBindingHandlers.validationOptions = {
 			});
 
 			var config = kv.configuration.validate;
-			validationTrigger.throttleEvaluation = options.throttle || config && config.throttle;
+			var throttleTimeout = options.throttle || config && config.throttle;
+
+			observable.validationState = ko.computed({
+				read: returnValidationState,
+				deferEvaluation: true
+			}, observable);
+			observable.validationState.throttleEvaluation = throttleTimeout ? throttleTimeout + 1 : null;
+			validationTrigger.throttleEvaluation = throttleTimeout;
 
 			observable._disposeValidation = function () {
 				this.rules.removeAll();
 				isModifiedSubscription.dispose();
 				validationTrigger.dispose();
+				this.validationState.dispose();
 
 				delete this['rules'];
 				delete this['error'];

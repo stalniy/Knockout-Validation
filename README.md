@@ -27,6 +27,7 @@
 * Implemented ability storing last failed rule
 * Decreased amount of notifications
 * Refactored code.
+* Added `validationState` computed which ensures that UI is updated only once when `isModified` and/or `error` are changed
 
 A KnockoutJS Plugin for model and property validation
 
