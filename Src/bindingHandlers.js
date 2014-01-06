@@ -1,56 +1,12 @@
-﻿// The core binding handler
-// this allows us to setup any value binding that internally always
-// performs the same functionality
-ko.bindingHandlers.exposeValidationResult = (function () {
-	return {
-		init: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
-			var config = ko.validation.utils.getConfigOptions(element);
-			var observable = valueAccessor();
-
-			// parse html5 input validation attributes, optional feature
-			if (config.parseInputAttributes) {
-				ko.validation.utils.async(function () {
-					ko.validation.utils.parseInputValidationAttributes(element, observable);
-				});
-			}
-
-			if (!ko.validation.utils.isValidatable(observable)) {
-				return false;
-			}
-
-			if (config.insertMessages) {
-				var messageNode = ko.validation.insertValidationMessage(element);
-				if (config.messageTemplate) {
-					ko.renderTemplate(config.messageTemplate, { field: observable }, null, messageNode, 'replaceNode');
-				} else {
-					ko.applyBindingsToNode(messageNode, { validationMessage: observable });
-				}
-			}
-
-			// write the html5 attributes if indicated by the config
-			if (config.writeInputAttributes) {
-				ko.validation.utils.writeInputValidationAttributes(element, observable);
-			}
-
-			// if requested, add binding to decorate element
-			if (config.decorateInputElement) {
-				ko.applyBindingsToNode(element, { validationStyle: observable });
-			}
-		}
-	};
-
-}());
-
-// override for KO's default 'value' and 'checked' bindings
-ko.validation.makeBindingHandlerValidatable("value");
+﻿ko.validation.makeBindingHandlerValidatable("value");
 ko.validation.makeBindingHandlerValidatable("checked");
 
 
-ko.bindingHandlers.validationMessage = { // individual error message, if modified or post binding
+ko.bindingHandlers.validationMessageFor = {
 	update: function (element, valueAccessor) {
 		var observable = valueAccessor();
 
-		if (!ko.validation.utils.isValidatable(observable)) {
+		if (!isValidatable(observable)) {
 			throw new Error("Observable is not validatable");
 		}
 
@@ -67,7 +23,7 @@ ko.bindingHandlers.validationMessage = { // individual error message, if modifie
 		if (shouldShowError) {
 			ko.bindingHandlers.text.update(element, function () { return error; });
 		}
-		ko.bindingHandlers.validationMessage.toggleErrorVisibility(element, shouldShowError);
+		ko.bindingHandlers.validationMessageFor.toggleErrorVisibility(element, shouldShowError);
 	},
 
 	toggleErrorVisibility: function (element, shouldShow) {
@@ -84,7 +40,7 @@ ko.bindingHandlers.validationStyle = {
 	update: function (element, valueAccessor) {
 		var observable = valueAccessor();
 
-		if (!ko.validation.utils.isValidatable(observable)) {
+		if (!isValidatable(observable)) {
 			throw new Error("Observable is not validatable");
 		}
 
@@ -95,7 +51,7 @@ ko.bindingHandlers.validationStyle = {
 		//add or remove class on the element;
 		ko.bindingHandlers.css.update(element, function () {
 			var classes = {};
-			classes[config.errorElementClass] = !config.decorateElementOnModified || state.isModified ? !state.isValid : false;
+			classes[config.errorElementClass] = (!config.messagesOnModified || state.isModified) && !state.isValid;
 
 			return classes;
 		});
@@ -110,7 +66,7 @@ ko.bindingHandlers.validationStyle = {
 
 		ko.bindingHandlers.attr.update(element, function () {
 			var title = ko.validation.utils.getOriginalElementTitle(element);
-			var hasModification = !config.errorsAsTitleOnModified || state.isModified;
+			var hasModification = !config.messagesOnModified || state.isModified;
 
 			if (hasModification && !state.isValid) {
 				return { title: state.error, 'data-orig-title': title };
@@ -130,10 +86,10 @@ ko.bindingHandlers.validationStyle = {
 //      <input type="text" data-bind="value: someValue2"/>
 // </div>
 ko.bindingHandlers.validationOptions = {
-	init: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+	init: function (element, valueAccessor) {
 		var options = ko.utils.unwrapObservable(valueAccessor());
 		if (options) {
-			var newConfig = ko.utils.extend({}, ko.validation.configuration);
+			var newConfig = ko.utils.extend({}, configuration);
 			ko.utils.extend(newConfig, options);
 
 			//store the validation options on the node so we can retrieve it later

@@ -1,20 +1,10 @@
-﻿/*globals require: false, exports: false, define: false, ko: false */
-
-(function (factory) {
-    // Module systems magic dance.
-
-    if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
-        // CommonJS or Node: hard-coded dependency on "knockout"
-        factory(require("knockout"), exports);
-    } else if (typeof define === "function" && define["amd"]) {
-        // AMD anonymous module with hard-coded dependency on "knockout"
-        define(["knockout", "exports"], factory);
+﻿(function (factory) {
+    if (typeof define === "function" && define.amd) {
+        define(["knockout", "exports", "tkt"], factory);
     } else {
-        // <script> tag: use the global `ko` object, attaching a `mapping` property
-        factory(ko, ko.validation = {});
+        factory(ko, ko.validation = {}, ko.tkt);
     }
-}(function ( ko, exports, undefined ) {
-
+}(function (ko, exports, tkt, undefined) {
     if (typeof ko === "undefined") {
         throw 'Knockout is required, please ensure it is loaded before loading this validation plug-in';
     }
