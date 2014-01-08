@@ -6,14 +6,16 @@ ko.validation.mixin = (function () {
   var each = ko.utils.arrayForEach;
   var extend = ko.utils.extend;
 
-  function makeValidatable(observable) {
-    observable._validators = ko.observableArray([]);
-    observable.error = ko.observable(null);
-    observable.isValid = isValid;
-  };
-
   function isValid() {
     return this.error() === null;
+  }
+
+  function failedRule(rule) {
+    if (arguments.length === 1) {
+      this.__failedRule = rule;
+      return this;
+    }
+    return this.__failedRule;
   }
 
   function extractFieldsFrom(object, fields) {
@@ -57,12 +59,12 @@ ko.validation.mixin = (function () {
 
     return {
       options    : extractFieldsFrom(validators, ['message', 'onlyIf']),
-      fields     : pathsToValues(args),
+      fields     : pathsToFields(args),
       validators : validators
     };
   }
 
-  function recursiveEach(list, callback) {
+  function asyncEach(list, callback) {
     var i = -1;
     var count = list.length;
 
@@ -75,19 +77,19 @@ ko.validation.mixin = (function () {
     next();
   }
 
-  function addValidatedFieldTo(object, field) {
+  function addValidatableFieldTo(object, field) {
     if (!object._validatedFieldNames[field.name]) {
       object._validatedFieldNames[field.name] = true;
       object._validatedFields.push(field);
     }
   }
 
-  function pathsToValues(paths, holder) {
+  function pathsToFields(paths, holder) {
     var values = [];
 
     each(paths, function (path) {
       var loc = tkt.valueLocationIn(holder, path);
-      values.push(loc.cursor[loc.field]);
+      values.push({ value: loc.cursor[loc.field], name: path });
     });
 
     return values;
@@ -108,33 +110,49 @@ ko.validation.mixin = (function () {
       for (var name in args.validators) {
         var validator = getValidator(name, args.validators, args.options);
 
-        each(args.fields, function (observable) {
-          if (!isValidatable(observable)) {
-            makeValidatable(observable);
+        each(args.fields, function (field) {
+          if (!isValidatable(field.value)) {
+            self._makeFieldValidatable(field);
           }
-          addValidatedFieldTo(this, { name: path, value: observable });
+          addValidatableFieldTo(this, field);
           observable._validators.push(validator);
-          self._addValidationHandlerFor(observable);
         });
       }
 
       return self;
     },
 
-    _addValidationHandlerFor: function (observable) {
-      var self = this;
-
-      observable._validationHandler = ko.computed(function () {
-        self._validate(observable);
-      });
-      observable._validationHandler.throttleEvaluation = 5;
+    _makeFieldValidatable: function (field) {
+      field.value._validators = [];
+      field.value.error = ko.observable(null);
+      field.value.isValid = isValid;
+      field.value.failedRule = failedRule;
     },
 
-    _validate: function (observable) {
+    _validateAll: function (attributePath) {
       var self = this;
-      var value = observable();
 
-      recursiveEach(observable._validators(), function (validator, next) {
+      this._eachValidatableInside(attributePath, function (field) {
+        self._validate(field);
+      });
+    },
+
+    _eachValidatableInside: function (attributePath, callback) {
+      var validatedFields = this._validatedFields;
+
+      for (var i = 0, count = validatedFields.length; i < count && isValid; i++) {
+        var field = validatedFields[i];
+        if (field.name.indexOf(attributePath) === 0 && callback(field) === false) {
+          break;
+        }
+      }
+    },
+
+    _validate: function (field) {
+      var self = this;
+      var value = field.value();
+
+      asyncEach(field.value._validators(), function (validator, next) {
         if (!validator.validate && validator.name in validators) {
           tkt.mixIfUndefined(validator, ko.validation.rules[validator.name]);
         }
@@ -144,14 +162,14 @@ ko.validation.mixin = (function () {
         }
 
         var validatorValue = ko.utils.unwrapObservable(validator.value);
-        var isValid =  === false ||
+        var isValid = validatorValue === false ||
           validator.mandatory && tkt.isValueBlank(value) ||
           validator.validate(value, validatorValue);
 
+        //TODO: implement _beforeValidation hook
         if (!isValid) {
           observable.error(validator.message);
         } else if (typeof isValid === "object" && isValid.promise) {
-          //TODO: implement _beforeValidation hook
           result.done(function (result) {
             if (result.isValid) {
               observable.error(null);
@@ -168,17 +186,14 @@ ko.validation.mixin = (function () {
     },
 
     _isValid: function (fieldPath) {
-      var isValid = true;
       var isValidated = false;
-      var validatedFields = this._validatedFields;
+      var isValid;
 
-      for (var i = 0, count = validatedFields.length; i < count && isValid; i++) {
-        var field = validatedFields[i];
-        if (field.name.indexOf(fieldPath) === 0) {
-          isValidated = true;
-          isValid = field.value.isValid();
-        }
-      }
+      this._eachValidatableInside(fieldPath, function (field) {
+        isValidated = true;
+        isValid = field.isValid();
+        return isValid;
+      });
 
       if (isValidated === false) {
         throw new Error("Unable to check validity of field: " + fieldPath);
@@ -192,7 +207,7 @@ ko.validation.mixin = (function () {
         if (field.value._validationHandler) {
           field.value._validationHandler.dispose();
         }
-        tkt.removeFieldsIn(field.value, ['error', '_validationHandler', '_validators']);
+        tkt.removeFieldsIn(field.value, ['error', 'isValid', '_validators', 'failedRule']);
       });
       this._validatedFields.length = 0;
       this._validatedFieldNames = null;

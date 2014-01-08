@@ -1,6 +1,4 @@
-﻿var api = (function () {
-	var isInitialized = false;
-	var configuration = ko.validation.configuration;
+var api = (function () {
 	var utils = ko.validation.utils;
 
 	function initValidationFor(element, valueAccessor) {
@@ -29,23 +27,12 @@
 	return {
 		//Call this on startup
 		//any config can be overridden with the passed in options
-		init: function (options, force) {
-			//done run this multiple times if we don't really want to
-			if (isInitialized && !force) {
-				return;
-			}
-
-			//becuase we will be accessing options properties it has to be an object at least
+		init: function (options) {
 			options = options || {};
-			//if specific error classes are not provided then apply generic errorClass
-			//it has to be done on option so that options.errorClass can override default
-			//errorElementClass and errorMessage class but not those provided in options
+
 			options.errorElementClass = options.errorElementClass || options.errorClass || configuration.errorElementClass;
 			options.errorMessageClass = options.errorMessageClass || options.errorClass || configuration.errorMessageClass;
-
 			ko.utils.extend(configuration, options);
-
-			isInitialized = true;
 		},
 
 		//creates a span next to the @element with the specified error class
@@ -58,16 +45,15 @@
 
 		//take an existing binding handler and make it cause automatic validations
 		makeBindingHandlerValidatable: function (handlerName) {
-			var init = ko.bindingHandlers[handlerName].init;
+			var realInit = ko.bindingHandlers[handlerName].init;
 
 			ko.bindingHandlers[handlerName].init = function () {
 				initValidationFor.apply(this, arguments)
-				return ko.bindingHandlers.exposeValidationResult.init.apply(this, arguments);
+				return realInit.apply(this, arguments);
 			};
 		}
 	};
 
 })();
 
-// expose api publicly
 ko.utils.extend(ko.validation, api);

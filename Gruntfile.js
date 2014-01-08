@@ -6,9 +6,8 @@ module.exports = function (grunt) {
 		pkg: grunt.file.readJSON("package.json"),
 		meta: {
 			banner: "/*=============================================================================\n" +
-					"	Author:			Eric M. Barnard - @ericmbarnard								\n" +
-					" Modified:   Sergiy Stotskiy - @stalniy                    \n" +
-					"	License:		MIT (http://opensource.org/licenses/mit-license.php)		\n" +
+					" Author:   Sergiy Stotskiy - @stalniy                    \n" +
+					"	License:	MIT (http://opensource.org/licenses/mit-license.php)		\n" +
 					"																				\n" +
 					"	Description:	Validation Library for KnockoutJS							\n" +
 					"===============================================================================\n*/\n"
@@ -34,12 +33,9 @@ module.exports = function (grunt) {
 					"Src/configuration.js",
 					"Src/utils.js",
 					"Src/api.js",
-					"Src/validatableModel.js",
+					"Src/validatable.js",
 					"Src/rules.js",
-					"Src/bindingHandlers.js",
-					"Src/extenders.js",
-					"Src/localization.js",
-					"Src/ko.extensions.js",
+					"Src/bindings.js",
 					"Src/ko.validation.end.frag",
 				],
 				dest: "Dist/<%= pkg.name %>.js"
@@ -56,9 +52,6 @@ module.exports = function (grunt) {
 				}
 			}
 		},
-		qunit: {
-			files: ["Tests/test-runner.htm"]
-		},
 		jshint: {
 			files: ["Src/**/*.js", "Tests/*.js"],
 			options: grunt.file.readJSON(".jshintrc"),
@@ -73,14 +66,13 @@ module.exports = function (grunt) {
 
 	grunt.loadNpmTasks("grunt-contrib-uglify");
 	grunt.loadNpmTasks("grunt-contrib-jshint");
-	grunt.loadNpmTasks("grunt-contrib-qunit");
 	grunt.loadNpmTasks("grunt-contrib-concat");
 	grunt.loadNpmTasks("grunt-contrib-watch");
 	grunt.loadNpmTasks("grunt-clear");
 
 	// Default task.
 	grunt.registerTask("default", ["test", "uglify"]);
-	grunt.registerTask("test", ["concat", "qunit", "jshint"]);
+	grunt.registerTask("test", ["concat", "jshint"]);
 
-	grunt.registerTask("compile", ["concat", "qunit", "uglify"]);
+	grunt.registerTask("compile", ["concat", "uglify"]);
 };
